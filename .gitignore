@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# TradeCheck data: downloaded source lists and the built store are not committed
+data/raw/
+data/*.duckdb

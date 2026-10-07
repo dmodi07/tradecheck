@@ -120,17 +120,22 @@ The three cases walk the full verdict taxonomy on real data.
 
 ## Build Session 2 plan
 
+**Demo scope (decided Oct 7):** narrowed to **US + Canada** — the legal must (Canada/SEMA)
+plus the dominant trade corridor (US/OFAC). Pulling **direct from the two government sources**
+(not OpenSanctions) removes the CC-BY-NC commercial-licence risk and strengthens provenance.
+See [`RUN.md`](RUN.md) for commands.
+
 ```
-OpenSanctions daily CSV ─┐
-UN XML (provenance check) ┼─► normalize ─► DuckDB ─► rapidfuzz match ─► verdict + evidence ─► single-page UI
+OFAC SDN + Consolidated (XML) ─┐
+Canada SEMA/JVCFOA (XML) ───────┼─► normalize ─► DuckDB ─► rapidfuzz match ─► verdict + evidence ─► single-page UI
 ```
 
-- [ ] Ingest the OpenSanctions daily dataset locally (DuckDB); keep the UN direct pull as provenance check
-- [ ] Normalization schema: name, aliases + quality, DOB, nationality, IDs, source list, program, listed date, `fetched_at` on every field
-- [ ] Matching pipeline (rapidfuzz) with transparent per-hit confidence scores
-- [ ] Single search UI: per-hit evidence, source links, verdict, "checked at" timestamp
-- [ ] 3 scripted demo cases (clear / caution / avoid), each running live in under 5 seconds
-- [ ] "Not legal advice" disclaimer on every result
+- [x] Ingest the two lists directly from source (DuckDB); provenance (`fetched_at`, SHA-256) in `manifest.json`
+- [x] Normalization schema: name, aliases + quality, DOB, nationality, IDs, source list, program, listed date, `fetched_at` on every field
+- [x] Matching pipeline (rapidfuzz) with transparent per-hit confidence scores
+- [x] Single search UI: per-hit evidence, source links, verdict, "checked at" timestamp
+- [ ] 3 scripted demo cases (clear / caution / avoid) on **live** data — logic validated offline via fixtures; pending first live fetch
+- [x] "Not legal advice" disclaimer on every result
 
 **Stack (all free):** Python, DuckDB, FastAPI, rapidfuzz, one static HTML page.
 
@@ -154,4 +159,6 @@ UN XML (provenance check) ┼─► normalize ─► DuckDB ─► rapidfuzz mat
 
 ## Repo status
 
-Build Session 1 (Oct 5): framing + this README. Build Session 2 (Oct 7): working ingestion and search.
+Build Session 1 (Oct 5): framing + this README. Build Session 2 (Oct 7): working ingestion and search —
+US + Canada direct-pull pipeline (OFAC SDN/Consolidated + Canada SEMA/JVCFOA) → DuckDB → rapidfuzz
+screening → FastAPI single-page UI. End-to-end tested offline (`pytest`, 11 passing). See [`RUN.md`](RUN.md).
