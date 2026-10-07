@@ -58,6 +58,33 @@ record), builds a DuckDB store, and asserts the full verdict taxonomy:
 Avoid (exact SDN hit) · Caution (weak alias) · Clear\* (unlisted) · Canada SEMA hit ·
 Unknown (no data).
 
+## Troubleshooting
+
+### `CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate`
+
+Python reached the server but couldn't verify its certificate. When every list fails this
+way at once, the cause is almost always your network, VPN or antivirus inspecting HTTPS:
+it re-signs traffic with its own root certificate, which your operating system (and so your
+browser) trusts but Python's default bundle (`certifi`) doesn't.
+
+1. Run `pip install -r requirements.txt`. It installs `truststore`, so the fetch verifies
+   against your operating system's certificates, the same ones your browser uses. Then
+   fetch again.
+2. Still failing? Check whether it's interception. Does
+   `python -c "import requests; requests.get('https://www.google.com')"` fail the same way?
+   Does the browser's padlock show the certificate issued by Zscaler, Netskope, Fortinet, an
+   antivirus or your university, rather than a public authority such as DigiCert or Entrust?
+   If so, ask IT for that root certificate and point `REQUESTS_CA_BUNDLE` at a PEM bundle
+   containing it plus the public roots. Or fetch from another network (home Wi-Fi, a phone
+   hotspot).
+
+Never set `verify=False`: verification is what stops a tampered sanctions list from reaching
+the screen.
+
+### `Tunnel connection failed: 403` (cloud sessions)
+
+The session's network policy blocks the source hosts. See the network note in step 1.
+
 ## Data sources
 
 | List | Endpoint |
