@@ -1,0 +1,7 @@
+duckdb>=1.1
+rapidfuzz>=3.9
+fastapi>=0.115
+uvicorn[standard]>=0.30
+lxml>=5.0
+requests>=2.31
+pytest>=8.0

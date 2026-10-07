@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeCheck</title>
+  <style>
+    :root {
+      --bg: #f6f7f9; --card: #ffffff; --ink: #111418; --muted: #5b6672;
+      --border: #e2e6eb; --accent: #1d4ed8;
+      --avoid-bg: #fdecec; --avoid-ink: #a01a1a; --avoid-bar: #d64545;
+      --caution-bg: #fdf4e3; --caution-ink: #8a5a00; --caution-bar: #e0a100;
+      --clear-bg: #e9f7ef; --clear-ink: #116b3a; --clear-bar: #2f9e5f;
+      --unknown-bg: #eef0f2; --unknown-ink: #4a545f; --unknown-bar: #8893a0;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1419; --card: #171d24; --ink: #e9edf1; --muted: #9aa6b2;
+        --border: #262e38; --accent: #6ea0ff;
+        --avoid-bg: #2a1718; --avoid-ink: #ff9b9b; --avoid-bar: #d64545;
+        --caution-bg: #2a2314; --caution-ink: #f0c66b; --caution-bar: #e0a100;
+        --clear-bg: #15241c; --clear-ink: #86e0ab; --clear-bar: #2f9e5f;
+        --unknown-bg: #1b2129; --unknown-ink: #aab4bf; --unknown-bar: #8893a0;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+    h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.3px; }
+    .tagline { color: var(--muted); margin: 0 0 24px; font-size: 15px; }
+    form { display: flex; gap: 8px; margin-bottom: 8px; }
+    input[type=text] {
+      flex: 1; padding: 12px 14px; font-size: 16px; border: 1px solid var(--border);
+      border-radius: 10px; background: var(--card); color: var(--ink);
+    }
+    input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    button {
+      padding: 12px 18px; font-size: 16px; font-weight: 600; border: 0; cursor: pointer;
+      border-radius: 10px; background: var(--accent); color: #fff;
+    }
+    button:disabled { opacity: .6; cursor: default; }
+    .hint { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+    .verdict {
+      border-radius: 14px; padding: 18px 18px 18px 22px; margin: 20px 0 16px;
+      border: 1px solid var(--border); position: relative; overflow: hidden;
+    }
+    .verdict::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
+    .verdict.avoid   { background: var(--avoid-bg); }   .verdict.avoid::before   { background: var(--avoid-bar); }
+    .verdict.caution { background: var(--caution-bg); } .verdict.caution::before { background: var(--caution-bar); }
+    .verdict.clear   { background: var(--clear-bg); }   .verdict.clear::before   { background: var(--clear-bar); }
+    .verdict.unknown { background: var(--unknown-bg); } .verdict.unknown::before { background: var(--unknown-bar); }
+    .verdict h2 { margin: 0 0 4px; font-size: 20px; }
+    .verdict.avoid h2 { color: var(--avoid-ink); }
+    .verdict.caution h2 { color: var(--caution-ink); }
+    .verdict.clear h2 { color: var(--clear-ink); }
+    .verdict.unknown h2 { color: var(--unknown-ink); }
+    .verdict p { margin: 4px 0 0; font-size: 14px; }
+    .hit {
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px 16px; margin: 10px 0;
+    }
+    .hit .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .hit .name { font-weight: 600; }
+    .badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+    .hit dl { display: grid; grid-template-columns: 130px 1fr; gap: 2px 12px; margin: 10px 0 0; font-size: 14px; }
+    .hit dt { color: var(--muted); } .hit dd { margin: 0; }
+    .hit a { color: var(--accent); }
+    .meta { color: var(--muted); font-size: 13px; margin-top: 18px; border-top: 1px solid var(--border); padding-top: 12px; }
+    .meta code { font-size: 12px; }
+    footer { color: var(--muted); font-size: 12px; margin-top: 28px; }
+    .err { color: var(--avoid-ink); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>TradeCheck</h1>
+    <p class="tagline">Free US&nbsp;+&nbsp;Canada sanctions screening &mdash; with the source and date behind every answer.</p>
+
+    <form id="f">
+      <input id="q" type="text" placeholder="Enter a person or company name&hellip;" autocomplete="off" autofocus />
+      <button id="go" type="submit">Screen</button>
+    </form>
+    <p class="hint">Screens the U.S. OFAC lists and Canada&rsquo;s autonomous (SEMA/JVCFOA) list. A clean result is never a guarantee &mdash; missing data shows as <em>Unknown</em>, never green.</p>
+
+    <div id="out" aria-live="polite"></div>
+
+    <footer>
+      Sources: U.S. Treasury OFAC &middot; Global Affairs Canada. Canada coverage is autonomous (SEMA/JVCFOA) only &mdash;
+      UN-mandated Canadian measures are enacted separately and are not yet included. Not legal advice.
+    </footer>
+  </div>
+
+  <script>
+    const form = document.getElementById("f");
+    const out = document.getElementById("out");
+    const go = document.getElementById("go");
+    const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+    const VERDICT = {
+      Avoid:   { cls: "avoid",   line: "Strong sanctions hit — do not proceed without review." },
+      Caution: { cls: "caution", line: "Possible hit flagged for human review." },
+      Clear:   { cls: "clear",   line: "No hits across the lists screened." },
+      Unknown: { cls: "unknown", line: "No data available — treat as Unknown, not clear." },
+    };
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("q").value.trim();
+      if (!name) return;
+      go.disabled = true; out.innerHTML = "<p class='hint'>Screening&hellip;</p>";
+      try {
+        const r = await fetch("/screen", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        render(await r.json());
+      } catch (err) {
+        out.innerHTML = "<p class='err'>Error: " + esc(err.message) + "</p>";
+      } finally { go.disabled = false; }
+    });
+
+    function render(res) {
+      const v = VERDICT[res.verdict] || VERDICT.Unknown;
+      let html = `<div class="verdict ${v.cls}">
+        <h2>${esc(res.verdict === "Clear" ? "Clear*" : res.verdict)}</h2>
+        <p>${esc(res.message || v.line)}</p></div>`;
+
+      for (const h of (res.hits || [])) {
+        const e = h.entity;
+        const ids = (e.ids || []).map(i => `${esc(i.type)}: ${esc(i.value)}${i.country ? " (" + esc(i.country) + ")" : ""}`).join("<br>");
+        html += `<div class="hit">
+          <div class="top">
+            <span class="name">${esc(e.primary_name)}</span>
+            <span class="badge">${esc(h.match_type)} · score ${esc(h.score)} · ${esc(h.quality || "name")}</span>
+          </div>
+          <dl>
+            <dt>Matched on</dt><dd>${esc(h.matched_name)}</dd>
+            <dt>List</dt><dd>${esc(e.source_list)} (${esc(e.entity_type)})</dd>
+            ${e.program ? `<dt>Program</dt><dd>${esc(e.program)}</dd>` : ""}
+            ${e.listed_date ? `<dt>Listed</dt><dd>${esc(e.listed_date)}</dd>` : ""}
+            ${(e.countries||[]).length ? `<dt>Country</dt><dd>${esc(e.countries.join(", "))}</dd>` : ""}
+            ${(e.dobs||[]).length ? `<dt>DOB</dt><dd>${esc(e.dobs.join("; "))}</dd>` : ""}
+            ${e.place_of_birth ? `<dt>Place of birth</dt><dd>${esc(e.place_of_birth)}</dd>` : ""}
+            ${ids ? `<dt>Identifiers</dt><dd>${ids}</dd>` : ""}
+            <dt>Source</dt><dd><a href="${esc(e.source_url)}" target="_blank" rel="noopener">${esc(e.source_list)} list</a></dd>
+            <dt>Fetched</dt><dd><code>${esc(e.fetched_at)}</code></dd>
+          </dl></div>`;
+      }
+
+      const lists = (res.lists_screened || [])
+        .map(l => `${esc(l.source_list)} <code>(${esc(l.fetched_at)})</code>`).join(" &middot; ") || "none loaded";
+      html += `<div class="meta">
+        Lists screened: ${lists}<br>
+        Checked at: <code>${esc(res.checked_at)}</code><br>
+        ${esc(res.disclaimer || "")}</div>`;
+      out.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
