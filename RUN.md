@@ -53,10 +53,12 @@ uvicorn app.main:app --reload
 pytest
 ```
 
-Parses the bundled fixtures (including the real public OFAC *Khawa Panga Mandro*
-record), builds a DuckDB store, and asserts the full verdict taxonomy:
-Avoid (exact SDN hit) · Caution (weak alias) · Clear\* (unlisted) · Canada SEMA hit ·
-Unknown (no data).
+Parses the bundled fixtures (including the real public OFAC *Khawa Panga Mandro* record), builds a DuckDB store, and asserts the full verdict taxonomy:
+- Avoid (exact SDN hit) 
+- Caution (weak alias) 
+- Clear\* (unlisted) 
+- Canada SEMA hit 
+- Unknown (no data).
 
 ## Troubleshooting
 
