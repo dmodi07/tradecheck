@@ -40,3 +40,20 @@ def test_canada_parses_individual_and_entity():
 
     entity = next(r for r in recs if r.entity_type == "entity")
     assert "Synthetic Test Trading" in entity.primary_name
+
+
+def test_canada_parses_live_bilingual_tags():
+    recs = list(parse_canada(str(FIXTURES / "canada_sema_live_shape.xml"), TS))
+    assert len(recs) == 2
+
+    person = next(r for r in recs if r.entity_type == "individual")
+    assert person.primary_name == "Pyotr Ivanovich Testovich"
+    assert person.countries == ["Testlandia"]
+    assert person.source_ref == "Testlandia #1"
+    assert person.program == "Testlandia / Schedule 1, Part 1"
+    assert {a.name for a in person.aliases} == {"Peter Testovich", "P. Testovich"}
+    assert person.listed_date == "2020-09-28"
+
+    ship = next(r for r in recs if r.entity_type == "vessel")
+    assert ship.primary_name == "Synthetic Ship One"
+    assert ship.ids == [{"type": "IMO", "value": "9999999", "country": ""}]

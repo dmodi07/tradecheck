@@ -37,6 +37,16 @@ _DISCLAIMER = "Not legal advice. Screening reflects the listed sources as of the
 _CACHE: dict[tuple[str, float], list[dict]] = {}
 
 
+def _mostly_lost(name: str, norm: str) -> bool:
+    """True when folding to ASCII dropped most of a name (e.g. Cyrillic, Arabic).
+
+    Such keys are fragments ("ka" from "Kaдырова") that fuzzy-match almost
+    anything. Those parties stay searchable via their Latin-script names.
+    """
+    letters = sum(c.isalpha() for c in name)
+    return letters > 0 and len(norm.replace(" ", "")) < 0.5 * letters
+
+
 def _load_names(con: duckdb.DuckDBPyConnection) -> list[dict]:
     rows = con.execute(
         "SELECT entity_id, name, name_norm, quality, is_primary FROM names WHERE name_norm <> ''"
@@ -44,7 +54,30 @@ def _load_names(con: duckdb.DuckDBPyConnection) -> list[dict]:
     return [
         {"entity_id": r[0], "name": r[1], "name_norm": r[2], "quality": r[3], "is_primary": r[4]}
         for r in rows
+        if not _mostly_lost(r[1], r[2])
     ]
+
+
+# A query that names only part of a listed name (e.g. without the patronymic) is
+# scored down so it can reach "review" but never "avoid" on its own.
+PARTIAL_SCALE = 0.9
+
+
+def _score(query_norm: str, name_norm: str) -> tuple[float, str]:
+    """Score a candidate name. Returns (score, kind) with kind 'full' | 'partial'.
+
+    Whole-name comparison (order-insensitive) is the default. A subset match only
+    counts in one direction: the query may omit words of the listed name, but a
+    short listed alias never matches inside a longer query ("Dora" must not hit
+    "AgroDistribuidora").
+    """
+    full = fuzz.token_sort_ratio(query_norm, name_norm)
+    q_tokens, n_tokens = query_norm.split(), name_norm.split()
+    if len(q_tokens) >= 2 and len(n_tokens) > len(q_tokens):
+        partial = fuzz.token_set_ratio(query_norm, name_norm) * PARTIAL_SCALE
+        if partial > full:
+            return partial, "partial"
+    return full, "full"
 
 
 def _names_for(db_path: Path, con: duckdb.DuckDBPyConnection) -> list[dict]:
@@ -61,6 +94,25 @@ def _lists_screened(con: duckdb.DuckDBPyConnection) -> list[dict]:
         "SELECT source_list, MAX(fetched_at) FROM entities GROUP BY source_list ORDER BY source_list"
     ).fetchall()
     return [{"source_list": r[0], "fetched_at": r[1]} for r in rows]
+
+
+def status(db_path: str | Path = DB_PATH) -> dict:
+    """Which lists are loaded, how many entries each holds, and when each was fetched."""
+    db_path = Path(db_path)
+    if not db_path.exists():
+        return {"lists": []}
+    con = duckdb.connect(str(db_path), read_only=True)
+    try:
+        rows = con.execute(
+            """SELECT source_list, COUNT(*), MAX(fetched_at), ANY_VALUE(source_url)
+               FROM entities GROUP BY source_list ORDER BY source_list"""
+        ).fetchall()
+    finally:
+        con.close()
+    return {"lists": [
+        {"source_list": r[0], "entries": r[1], "fetched_at": r[2], "source_url": r[3]}
+        for r in rows
+    ]}
 
 
 def _entity(con: duckdb.DuckDBPyConnection, entity_id: int) -> dict:
@@ -126,18 +178,22 @@ def screen(
         names = _names_for(db_path, con)
         norms = [n["name_norm"] for n in names]
 
-        # rapidfuzz over all name variants; WRatio handles word order + partials.
-        matches = process.extract(
-            query_norm, norms, scorer=fuzz.WRatio,
-            score_cutoff=caution_threshold, limit=50,
+        # token_set_ratio is an upper bound on _score, so it is a safe C-speed prefilter.
+        candidates = process.extract(
+            query_norm, norms, scorer=fuzz.token_set_ratio,
+            score_cutoff=caution_threshold, limit=1000,
         )
 
         # Best grade + score per entity.
         best: dict[int, dict] = {}
-        for _matched_norm, score, idx in matches:
+        for _matched_norm, _upper, idx in candidates:
             meta = names[idx]
+            score, kind = _score(query_norm, meta["name_norm"])
+            if score < caution_threshold:
+                continue
             is_exact = meta["name_norm"] == query_norm
-            level = _grade_hit(is_exact, score, meta["quality"], meta["is_primary"])
+            level = "caution" if kind == "partial" else _grade_hit(
+                is_exact, score, meta["quality"], meta["is_primary"])
             eid = meta["entity_id"]
             prior = best.get(eid)
             if prior is None or score > prior["score"] or (level == "avoid" and prior["level"] != "avoid"):
@@ -145,7 +201,7 @@ def screen(
                     "score": round(float(score), 1),
                     "level": level,
                     "matched_name": meta["name"],
-                    "match_type": "exact" if is_exact else "fuzzy",
+                    "match_type": "exact" if is_exact else ("partial" if kind == "partial" else "fuzzy"),
                     "quality": "primary" if meta["is_primary"] else meta["quality"],
                 }
 

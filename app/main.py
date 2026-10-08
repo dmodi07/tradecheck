@@ -13,11 +13,20 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from match.screen import screen
+from match.screen import screen, status
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 app = FastAPI(title="TradeCheck", description="Free US + Canada sanctions screening for small businesses.")
+
+
+@app.middleware("http")
+async def revalidate_pages(request, call_next):
+    """no-cache on the page and its assets: browsers revalidate, so a new design shows up on the next load."""
+    response = await call_next(request)
+    if request.url.path == "/" or request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
 
 
 class ScreenRequest(BaseModel):
@@ -27,6 +36,11 @@ class ScreenRequest(BaseModel):
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
+
+
+@app.get("/status")
+def status_endpoint() -> dict:
+    return status()
 
 
 @app.post("/screen")
