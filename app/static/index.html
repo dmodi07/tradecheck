@@ -4,161 +4,206 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TradeCheck</title>
+  <meta name="description" content="Check a buyer, supplier or partner against US and Canadian sanctions lists." />
+  <meta name="theme-color" content="#f4c20d" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M6 2v28' stroke='%230b3d91' stroke-width='3' stroke-linecap='round'/%3E%3Crect x='8' y='4' width='20' height='16' rx='1.5' fill='%23f4c20d' stroke='%230b3d91' stroke-width='1.5'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&family=Barlow+Condensed:wght@700&display=swap" />
+  <link rel="stylesheet" href="/static/ds.css" />
   <style>
-    :root {
-      --bg: #f6f7f9; --card: #ffffff; --ink: #111418; --muted: #5b6672;
-      --border: #e2e6eb; --accent: #1d4ed8;
-      --avoid-bg: #fdecec; --avoid-ink: #a01a1a; --avoid-bar: #d64545;
-      --caution-bg: #fdf4e3; --caution-ink: #8a5a00; --caution-bar: #e0a100;
-      --clear-bg: #e9f7ef; --clear-ink: #116b3a; --clear-bar: #2f9e5f;
-      --unknown-bg: #eef0f2; --unknown-ink: #4a545f; --unknown-bar: #8893a0;
+    /* Page layout. Every value comes from the design system tokens in ds.css. */
+    .page { max-width: 880px; margin: 0 auto; padding: 0 var(--s-4) var(--s-8); }
+
+    .masthead { display: flex; justify-content: space-between; align-items: center; gap: var(--s-4); padding: var(--s-5) 0 0; }
+    .brand { display: inline-flex; align-items: center; gap: var(--s-2); font-weight: 700; font-size: var(--fs-lg); color: var(--brand-ink); text-decoration: none; }
+    .masthead nav a { font-size: var(--fs-sm); }
+
+    .hero { display: grid; grid-template-columns: 1fr auto; gap: var(--s-6); align-items: end; padding: var(--s-7) 0 var(--s-5); }
+    .hero h1 { font-size: var(--fs-3xl); line-height: var(--lh-tight); letter-spacing: -0.02em; max-width: 14ch; margin-bottom: var(--s-4); }
+    .hero p { margin: 0; color: var(--text-muted); font-size: var(--fs-lg); line-height: 1.45; max-width: 46ch; }
+
+    /* The hero flag hoists once on load, flutters twice, then rests. */
+    .hero-flag { width: 150px; height: 230px; overflow: hidden; color: var(--brand-ink); }
+    .hero-flag .halyard { animation: hoist 1100ms var(--ease-out) both 200ms; --hoist-from: 170px; }
+    .hero-flag .cloth-wrap { transform-origin: 18px 30px; animation: flutter 1400ms ease-in-out 1300ms 2; }
+
+    .search { padding-bottom: var(--s-2); }
+    .examples { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); margin-top: var(--s-2); font-size: var(--fs-sm); color: var(--text-muted); }
+    .coverage { display: flex; align-items: center; gap: var(--s-2); margin: var(--s-5) 0 0; font-size: var(--fs-sm); color: var(--text-muted); }
+    .coverage::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--border-strong); transition: background-color var(--dur); }
+    .coverage.is-live::before { background: var(--nomatch); box-shadow: 0 0 0 4px color-mix(in srgb, var(--nomatch) 20%, transparent); }
+    .coverage.is-down::before { background: var(--danger); }
+
+    #result { margin-top: var(--s-6); scroll-margin-top: var(--s-4); }
+    #result:empty { display: none; }
+
+    .guide { margin-top: var(--s-7); padding-top: var(--s-5); border-top: 1px solid var(--border); }
+    .guide h2 { font-size: var(--fs-lg); margin-bottom: var(--s-4); }
+    .guide ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-5); }
+    .guide li { font-size: var(--fs-sm); color: var(--text-muted); }
+    .guide .stamp { margin-bottom: var(--s-2); }
+    @media (min-width: 760px) { .guide ul { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+    footer { margin-top: var(--s-8); padding-top: var(--s-5); border-top: 1px solid var(--border); font-size: var(--fs-sm); color: var(--text-muted); }
+    footer h2 { font-size: var(--fs-md); color: var(--text); margin-bottom: var(--s-2); }
+    footer p { margin: 0 0 var(--s-3); max-width: 72ch; }
+
+    @media (max-width: 640px) {
+      .hero { grid-template-columns: 1fr; padding-top: var(--s-6); }
+      .hero-flag { display: none; }
+      .record__head { grid-template-columns: 1fr; padding: var(--s-5) var(--s-4); }
+      .record__head .stamp { order: -1; justify-self: start; font-size: var(--fs-xl); }
+      .record__section { padding: var(--s-5) var(--s-4); }
+      .field__row .btn { flex: 1 1 100%; }
+      .checklist li { grid-template-columns: 22px 1fr; }
+      .checklist .when { grid-column: 2; text-align: left; }
     }
-    @media (prefers-color-scheme: dark) {
+
+    @media print {
       :root {
-        --bg: #0f1419; --card: #171d24; --ink: #e9edf1; --muted: #9aa6b2;
-        --border: #262e38; --accent: #6ea0ff;
-        --avoid-bg: #2a1718; --avoid-ink: #ff9b9b; --avoid-bar: #d64545;
-        --caution-bg: #2a2314; --caution-ink: #f0c66b; --caution-bar: #e0a100;
-        --clear-bg: #15241c; --clear-ink: #86e0ab; --clear-bar: #2f9e5f;
-        --unknown-bg: #1b2129; --unknown-ink: #aab4bf; --unknown-bar: #8893a0;
+        color-scheme: light;
+        --bg: #fff; --surface: #fff; --surface-sunk: #fff; --text: #000; --text-muted: #444;
+        --border: #bbb; --border-strong: #888; --brand-ink: #0b3d91; --link: #000;
+        --listed: #c8102e;  --listed-wash: #fdecee;
+        --review: #a64b00;  --review-wash: #fdf1e2;
+        --nomatch: #17704a; --nomatch-wash: #e6f4ec;
+        --unchecked: #56606b; --unchecked-wash: #eef0f2;
+        --shadow-1: none;
       }
+      @page { margin: 14mm; }
+      body { font-size: 10pt; line-height: 1.4; }
+      .masthead nav, .hero, .search, .guide, .record-actions, [data-more] { display: none !important; }
+      .page { max-width: none; padding: 0; }
+      #result { margin-top: var(--s-3); }
+      .record, .record__head .stamp, .listing { animation: none !important; }
+      .listing[hidden] { display: block !important; }
+      .listing, .record__head, .steps, .checklist { break-inside: avoid; }
+      .record h3 { break-after: avoid; }
+      .record__head, .stamp, .badge, .tick { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .record__head { padding: 14px 18px; }
+      .record__section { padding: 12px 18px; }
+      .record__title { font-size: 18pt; }
+      .listing { padding: 8px 0; }
+      .listing dl, .listing__sources, .checklist li { font-size: 9pt; }
+      .listing dl { gap: 0 12px; }
+      .listing__sources a::after { content: " (" attr(href) ")"; font-size: 7pt; overflow-wrap: anywhere; }
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; background: var(--bg); color: var(--ink);
-      font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-    .wrap { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
-    h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.3px; }
-    .tagline { color: var(--muted); margin: 0 0 24px; font-size: 15px; }
-    form { display: flex; gap: 8px; margin-bottom: 8px; }
-    input[type=text] {
-      flex: 1; padding: 12px 14px; font-size: 16px; border: 1px solid var(--border);
-      border-radius: 10px; background: var(--card); color: var(--ink);
-    }
-    input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-    button {
-      padding: 12px 18px; font-size: 16px; font-weight: 600; border: 0; cursor: pointer;
-      border-radius: 10px; background: var(--accent); color: #fff;
-    }
-    button:disabled { opacity: .6; cursor: default; }
-    .hint { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
-    .verdict {
-      border-radius: 14px; padding: 18px 18px 18px 22px; margin: 20px 0 16px;
-      border: 1px solid var(--border); position: relative; overflow: hidden;
-    }
-    .verdict::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
-    .verdict.avoid   { background: var(--avoid-bg); }   .verdict.avoid::before   { background: var(--avoid-bar); }
-    .verdict.caution { background: var(--caution-bg); } .verdict.caution::before { background: var(--caution-bar); }
-    .verdict.clear   { background: var(--clear-bg); }   .verdict.clear::before   { background: var(--clear-bar); }
-    .verdict.unknown { background: var(--unknown-bg); } .verdict.unknown::before { background: var(--unknown-bar); }
-    .verdict h2 { margin: 0 0 4px; font-size: 20px; }
-    .verdict.avoid h2 { color: var(--avoid-ink); }
-    .verdict.caution h2 { color: var(--caution-ink); }
-    .verdict.clear h2 { color: var(--clear-ink); }
-    .verdict.unknown h2 { color: var(--unknown-ink); }
-    .verdict p { margin: 4px 0 0; font-size: 14px; }
-    .hit {
-      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-      padding: 14px 16px; margin: 10px 0;
-    }
-    .hit .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-    .hit .name { font-weight: 600; }
-    .badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
-    .hit dl { display: grid; grid-template-columns: 130px 1fr; gap: 2px 12px; margin: 10px 0 0; font-size: 14px; }
-    .hit dt { color: var(--muted); } .hit dd { margin: 0; }
-    .hit a { color: var(--accent); }
-    .meta { color: var(--muted); font-size: 13px; margin-top: 18px; border-top: 1px solid var(--border); padding-top: 12px; }
-    .meta code { font-size: 12px; }
-    footer { color: var(--muted); font-size: 12px; margin-top: 28px; }
-    .err { color: var(--avoid-ink); }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>TradeCheck</h1>
-    <p class="tagline">Free US&nbsp;+&nbsp;Canada sanctions screening &mdash; with the source and date behind every answer.</p>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-check" viewBox="0 0 12 12"><path d="M2 6.5l2.6 2.6L10 3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 4.5v4.2M8 11.2v.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 7.2v4.3M8 4.6v.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  </svg>
 
-    <form id="f">
-      <input id="q" type="text" placeholder="Enter a person or company name&hellip;" autocomplete="off" autofocus />
-      <button id="go" type="submit">Screen</button>
-    </form>
-    <p class="hint">Screens the U.S. OFAC lists and Canada&rsquo;s autonomous (SEMA/JVCFOA) list. A clean result is never a guarantee &mdash; missing data shows as <em>Unknown</em>, never green.</p>
+  <div class="page">
+    <header class="masthead">
+      <a class="brand" href="/" aria-label="TradeCheck home">
+        <svg class="qflag" width="26" height="30" viewBox="0 0 26 30" aria-hidden="true">
+          <path class="pole" d="M3 2v26" stroke-width="2.6" stroke-linecap="round"/>
+          <rect class="cloth" x="5.5" y="3.5" width="18" height="14" rx="1.5"/>
+        </svg>
+        TradeCheck
+      </a>
+      <nav><a href="#about">What this checks</a></nav>
+    </header>
 
-    <div id="out" aria-live="polite"></div>
+    <main>
+      <section class="hero" aria-labelledby="ask-title">
+        <div>
+          <h1 id="ask-title">Who are you about to trade with?</h1>
+          <p>Check a buyer, supplier or partner against US and Canadian sanctions lists before you sign, pay or ship. Free, with the source and date behind every answer.</p>
+        </div>
+        <svg class="hero-flag qflag" viewBox="0 0 150 230" aria-hidden="true">
+          <path class="pole" d="M18 14v214" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="18" cy="10" r="6" fill="currentColor"/>
+          <g class="halyard">
+            <g class="cloth-wrap">
+              <rect class="cloth" x="21" y="20" width="112" height="84" rx="3"/>
+            </g>
+          </g>
+        </svg>
+      </section>
 
-    <footer>
-      Sources: U.S. Treasury OFAC &middot; Global Affairs Canada. Canada coverage is autonomous (SEMA/JVCFOA) only &mdash;
-      UN-mandated Canadian measures are enacted separately and are not yet included. Not legal advice.
+      <form class="search" id="search" role="search" novalidate>
+        <div class="field">
+          <label class="field__label" for="q">Company or person&rsquo;s name</label>
+          <div class="field__row">
+            <input class="input" id="q" name="q" type="text" autocomplete="off" spellcheck="false"
+                   maxlength="250" placeholder="e.g. Pacific Rim Textiles Ltd."
+                   aria-describedby="q-msg" />
+            <button class="btn btn--primary btn--lg" id="go" type="submit">
+              <span class="spinner" hidden></span><span data-label>Check name</span>
+            </button>
+          </div>
+          <p class="field__msg" id="q-msg" aria-live="polite">Use the name as it appears on their registration or shipping documents.</p>
+        </div>
+        <div class="examples" aria-label="Example names">
+          <span>Try an example:</span>
+          <button class="chip" type="button" data-example="AgroDistribuidora del Bajío SA de CV">AgroDistribuidora del Bajío</button>
+          <button class="chip" type="button" data-example="Mohammad Ali">Mohammad Ali</button>
+          <button class="chip" type="button" data-example="Rosneft">Rosneft</button>
+        </div>
+        <p class="coverage" id="coverage">Connecting to the lists&hellip;</p>
+      </form>
+
+      <div id="result" aria-live="polite"></div>
+
+      <section class="guide" id="guide" aria-labelledby="guide-title">
+        <h2 id="guide-title">What you&rsquo;ll get back</h2>
+        <ul>
+          <li><span class="stamp stamp--sm is-listed">Listed</span><br>The name is on a sanctions list. Don&rsquo;t proceed until it&rsquo;s resolved.</li>
+          <li><span class="stamp stamp--sm is-review">Review</span><br>A similar name is listed. Compare the details to rule it in or out.</li>
+          <li><span class="stamp stamp--sm is-nomatch">No match</span><br>Nothing found on the lists checked, as of the date shown.</li>
+          <li><span class="stamp stamp--sm is-unchecked">Not checked</span><br>The check couldn&rsquo;t run. Never treat this as a pass.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer id="about">
+      <h2>What this checks</h2>
+      <p>The US Treasury&rsquo;s sanctions lists (OFAC) and Canada&rsquo;s autonomous sanctions list (Special Economic Measures Act and Justice for Victims of Corrupt Foreign Officials Act), downloaded directly from each government.</p>
+      <p>Not yet covered: sanctions Canada applies through the United Nations Act, and the EU, UK and UN lists. It doesn&rsquo;t cover export permits, tariffs or whether a company is real.</p>
+      <p>This is a screening aid, not legal advice. A &ldquo;No match&rdquo; reflects only the lists and dates shown.</p>
+      <p>Our mark is the Q flag, which ships raise in port to ask for clearance.</p>
     </footer>
   </div>
 
-  <script>
-    const form = document.getElementById("f");
-    const out = document.getElementById("out");
-    const go = document.getElementById("go");
-    const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  <template id="tpl-record">
+    <article class="record" tabindex="-1">
+      <header class="record__head">
+        <div>
+          <p class="record__eyebrow">Name checked: <strong data-f="query"></strong></p>
+          <h2 class="record__title" data-f="headline"></h2>
+          <p class="record__answer" data-f="answer"></p>
+        </div>
+        <span class="stamp" data-f="stamp"></span>
+      </header>
+      <section class="record__section">
+        <h3>What to do next</h3>
+        <ol class="steps" data-f="steps"></ol>
+      </section>
+      <section class="record__section" data-f="matches-section" hidden>
+        <h3 data-f="matches-title"></h3>
+        <p class="fine" data-f="matches-intro" style="margin-top:0"></p>
+        <div data-f="matches"></div>
+      </section>
+      <section class="record__section">
+        <h3>Lists checked</h3>
+        <ul class="checklist" data-f="lists"></ul>
+        <p class="fine" data-f="fine"></p>
+      </section>
+      <section class="record__section record-actions">
+        <div class="actions">
+          <button type="button" class="btn btn--primary" data-action="print">Print or save this record</button>
+          <button type="button" class="btn" data-action="again">Check another name</button>
+        </div>
+      </section>
+    </article>
+  </template>
 
-    const VERDICT = {
-      Avoid:   { cls: "avoid",   line: "Strong sanctions hit — do not proceed without review." },
-      Caution: { cls: "caution", line: "Possible hit flagged for human review." },
-      Clear:   { cls: "clear",   line: "No hits across the lists screened." },
-      Unknown: { cls: "unknown", line: "No data available — treat as Unknown, not clear." },
-    };
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = document.getElementById("q").value.trim();
-      if (!name) return;
-      go.disabled = true; out.innerHTML = "<p class='hint'>Screening&hellip;</p>";
-      try {
-        const r = await fetch("/screen", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name }),
-        });
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        render(await r.json());
-      } catch (err) {
-        out.innerHTML = "<p class='err'>Error: " + esc(err.message) + "</p>";
-      } finally { go.disabled = false; }
-    });
-
-    function render(res) {
-      const v = VERDICT[res.verdict] || VERDICT.Unknown;
-      let html = `<div class="verdict ${v.cls}">
-        <h2>${esc(res.verdict === "Clear" ? "Clear*" : res.verdict)}</h2>
-        <p>${esc(res.message || v.line)}</p></div>`;
-
-      for (const h of (res.hits || [])) {
-        const e = h.entity;
-        const ids = (e.ids || []).map(i => `${esc(i.type)}: ${esc(i.value)}${i.country ? " (" + esc(i.country) + ")" : ""}`).join("<br>");
-        html += `<div class="hit">
-          <div class="top">
-            <span class="name">${esc(e.primary_name)}</span>
-            <span class="badge">${esc(h.match_type)} · score ${esc(h.score)} · ${esc(h.quality || "name")}</span>
-          </div>
-          <dl>
-            <dt>Matched on</dt><dd>${esc(h.matched_name)}</dd>
-            <dt>List</dt><dd>${esc(e.source_list)} (${esc(e.entity_type)})</dd>
-            ${e.program ? `<dt>Program</dt><dd>${esc(e.program)}</dd>` : ""}
-            ${e.listed_date ? `<dt>Listed</dt><dd>${esc(e.listed_date)}</dd>` : ""}
-            ${(e.countries||[]).length ? `<dt>Country</dt><dd>${esc(e.countries.join(", "))}</dd>` : ""}
-            ${(e.dobs||[]).length ? `<dt>DOB</dt><dd>${esc(e.dobs.join("; "))}</dd>` : ""}
-            ${e.place_of_birth ? `<dt>Place of birth</dt><dd>${esc(e.place_of_birth)}</dd>` : ""}
-            ${ids ? `<dt>Identifiers</dt><dd>${ids}</dd>` : ""}
-            <dt>Source</dt><dd><a href="${esc(e.source_url)}" target="_blank" rel="noopener">${esc(e.source_list)} list</a></dd>
-            <dt>Fetched</dt><dd><code>${esc(e.fetched_at)}</code></dd>
-          </dl></div>`;
-      }
-
-      const lists = (res.lists_screened || [])
-        .map(l => `${esc(l.source_list)} <code>(${esc(l.fetched_at)})</code>`).join(" &middot; ") || "none loaded";
-      html += `<div class="meta">
-        Lists screened: ${lists}<br>
-        Checked at: <code>${esc(res.checked_at)}</code><br>
-        ${esc(res.disclaimer || "")}</div>`;
-      out.innerHTML = html;
-    }
-  </script>
+  <script src="/static/app.js" defer></script>
 </body>
 </html>

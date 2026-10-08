@@ -93,13 +93,17 @@ Honestly, the valuable part isn't the code, it's the data pipeline. A daily-refr
 
 **After Demo Day:** extend the same pattern to tariffs/duties by product code and firm-registry checks. One place for "can I trade X with country Y?" The world-map explorer idea, but grounded in official data.
 
-## Demo script (3 cases, each live in under 5 seconds)
+## Demo script (4 cases, each live in under 5 seconds)
 
-1. **Clear** — "AgroDistribuidora del Bajío SA de CV" (fictional Mexican buyer): no hits across all lists → Clear\*, with "checked at" timestamp and the lists screened.
-2. **Caution** — "Chief Kahwa": matches a *Low-quality* alias of KHAWA PANGA MANDRO (UN list) → Caution: weak-alias hit flagged for human review, with the alias-quality evidence shown.
-3. **Avoid** — "KHAWA PANGA MANDRO": exact primary-name hit on the UN Consolidated List → Avoid, with identifiers, program, listing date, and source link.
+All four run on live US + Canada data and are one click away in the UI ("Try an example").
 
-The three cases walk the full verdict taxonomy on real data.
+1. **No match** — "AgroDistribuidora del Bajío SA de CV" (fictional Mexican buyer): no hits → *No match* stamp, with the lists checked and their download dates.
+2. **Review** — "Mohammad Ali": a common name with ~27 similar listings → *Review*, with each listing's birth date, country and IDs laid out for comparison. Shows why the tool never auto-blocks on a name alone.
+3. **Listed** — "Rosneft": exact hit on OFAC (SDN + non-SDN) and Canada SEMA → *Listed*, with registration and tax IDs and official source links.
+4. **Listed on both lists** — "Vladimir Putin": one party, listed by both the US and Canada, shown as a single entry with both sources.
+
+> The earlier "Chief Kahwa → Caution" case relied on a *Low-quality* UN alias. In the live OFAC
+> data that alias is *strong*, so it returns Listed; the UN list is out of the US + Canada scope.
 
 ## Key links
 
@@ -161,4 +165,4 @@ Canada SEMA/JVCFOA (XML) ───────┼─► normalize ─► DuckDB 
 
 Build Session 1 (Oct 5): framing + this README. Build Session 2 (Oct 7): working ingestion and search —
 US + Canada direct-pull pipeline (OFAC SDN/Consolidated + Canada SEMA/JVCFOA) → DuckDB → rapidfuzz
-screening → FastAPI single-page UI. End-to-end tested offline (`pytest`, 11 passing). See [`RUN.md`](RUN.md).
+screening → FastAPI single-page UI. End-to-end tested offline (`pytest`, 24 passing). See [`RUN.md`](RUN.md).

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- SYNTHETIC names in the LIVE sema-lmes.xml tag shape (bilingual tags), as
+     observed in the real file on 2026-10-07. NOT real sanctions listings. -->
+<data-set xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<record>
+		<Country-Pays>Testlandia / Testlandie</Country-Pays>
+		<LastName-NomDeFamille>Testovich</LastName-NomDeFamille>
+		<GivenName-Prenom>Pyotr Ivanovich</GivenName-Prenom>
+		<Aliases-Alias>Peter Testovich; P. Testovich</Aliases-Alias>
+		<DateOfBirthOrShipBuildDate-DateDeNaissanceOuDateDeConstructionDuNavire>1965-04-29</DateOfBirthOrShipBuildDate-DateDeNaissanceOuDateDeConstructionDuNavire>
+		<Schedule-Annexe>1, Part 1</Schedule-Annexe>
+		<Item-NumeroDarticle>1</Item-NumeroDarticle>
+		<DateOfListing-DateDinscription>2020-09-28</DateOfListing-DateDinscription>
+	</record>
+	<record>
+		<Country-Pays>Testlandia / Testlandie</Country-Pays>
+		<EntityOrShip-EntiteOuNavire>Synthetic Ship One</EntityOrShip-EntiteOuNavire>
+		<TitleOrShipType-TitreOuTypeDeNavire>Crude Oil Tanker | Pétrolier</TitleOrShipType-TitreOuTypeDeNavire>
+		<ShipIMONumber-NumeroOMIDuNavire>9999999</ShipIMONumber-NumeroOMIDuNavire>
+		<Schedule-Annexe>1, Part 2</Schedule-Annexe>
+		<Item-NumeroDarticle>2</Item-NumeroDarticle>
+		<DateOfListing-DateDinscription>2025-02-24</DateOfListing-DateDinscription>
+	</record>
+</data-set>

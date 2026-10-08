@@ -46,3 +46,37 @@ def test_unknown_not_clear_when_no_data(tmp_path):
     res = screen("whoever", tmp_path / "missing.duckdb")
     assert res["verdict"] == "Unknown"
     assert res["hits"] == []
+
+
+def test_short_alias_does_not_match_inside_longer_name():
+    from match.screen import _score
+    # Live OFAC carries a weak alias "Dora"; it must not flag "AgroDistribuidora".
+    score, _ = _score("agrodistribuidora del bajio", "dora")
+    assert score < 90
+
+
+def test_query_may_omit_middle_names_but_only_reaches_review():
+    from match.screen import _score
+    score, kind = _score("khazalbek atabekov", "khazalbek bakhtibekovich atabekov")
+    assert kind == "partial" and 90 <= score < 95
+
+
+def test_non_latin_names_that_fold_to_fragments_are_skipped():
+    from match.screen import _mostly_lost
+    from ingest.normalize import normalize_name
+    name = "Аймани Несиевна Kaдырова"
+    assert _mostly_lost(name, normalize_name(name))
+    assert not _mostly_lost("Khawa Panga MANDRO", "khawa panga mandro")
+
+
+def test_status_reports_lists_and_counts(db):
+    from match.screen import status
+    res = status(db)
+    by_list = {l["source_list"]: l for l in res["lists"]}
+    assert by_list["OFAC-SDN"]["entries"] == 2
+    assert by_list["CA-SEMA"]["fetched_at"]
+
+
+def test_status_without_data(tmp_path):
+    from match.screen import status
+    assert status(tmp_path / "missing.duckdb")["lists"] == []
