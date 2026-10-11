@@ -1,0 +1,371 @@
+/* TradeCheck design system.
+ *
+ * Brand: the "Q" signal flag, the plain yellow flag a ship flies to request
+ * clearance in port. Yellow is the brand mark and the primary action; flag blue
+ * is the brand ink. Verdict colours (red, amber, spruce, slate) are reserved for
+ * results and never used for decoration, so colour on a result always means
+ * something.
+ *
+ * Layers: 1) primitives  2) semantic tokens (light / dark / print)  3) components.
+ * Components only reference semantic tokens.
+ */
+
+/* ---------- 1. Primitives ---------- */
+:root {
+  --q-yellow-300: #ffd84d;
+  --q-yellow-400: #f4c20d;
+  --q-yellow-500: #dcab00;
+  --flag-blue-200: #b9c9ec;
+  --flag-blue-400: #4f78d1;
+  --flag-blue-600: #0b3d91;
+  --flag-blue-800: #072a66;
+  --concrete-50: #f5f6f6;
+  --concrete-100: #e7e9ea;
+  --concrete-200: #d3d7da;
+  --concrete-400: #9aa1a8;
+  --concrete-600: #5b636b;
+  --ink-900: #1f2328;
+  --harbour-950: #0b1626;
+  --harbour-900: #12213a;
+  --harbour-800: #1b2d4a;
+  --harbour-700: #2a3f62;
+  --white: #ffffff;
+
+  --red-600: #c8102e;   --red-50: #fdecee;   --red-300: #ff8f9c;   --red-950: #3a1118;
+  --amber-700: #a64b00; --amber-50: #fdf1e2; --amber-300: #ffb867; --amber-950: #3a2410;
+  --spruce-700: #17704a; --spruce-50: #e6f4ec; --spruce-300: #73d6a3; --spruce-950: #0f2e22;
+  --slate-600: #56606b; --slate-50: #eef0f2;  --slate-300: #b3bcc6; --slate-950: #1f2733;
+}
+
+/* ---------- 2. Semantic tokens ---------- */
+:root {
+  color-scheme: light;
+  --bg: var(--concrete-100);
+  --surface: var(--white);
+  --surface-sunk: var(--concrete-50);
+  --text: var(--ink-900);
+  --text-muted: var(--concrete-600);
+  --border: var(--concrete-200);
+  --border-strong: var(--concrete-400);
+  --brand: var(--q-yellow-400);
+  --brand-hover: var(--q-yellow-300);
+  --brand-press: var(--q-yellow-500);
+  --on-brand: var(--ink-900);
+  --brand-ink: var(--flag-blue-600);
+  --brand-ink-hover: var(--flag-blue-800);
+  --link: var(--flag-blue-600);
+  --focus: var(--q-yellow-400);
+  --focus-edge: var(--flag-blue-600);
+  --flag-edge: var(--flag-blue-600);
+  --danger: var(--red-600);
+
+  --listed: var(--red-600);      --listed-wash: var(--red-50);
+  --review: var(--amber-700);    --review-wash: var(--amber-50);
+  --nomatch: var(--spruce-700);  --nomatch-wash: var(--spruce-50);
+  --unchecked: var(--slate-600); --unchecked-wash: var(--slate-50);
+
+  /* Type: Atkinson Hyperlegible for reading, Barlow Condensed for stamps only.
+     Scale: 1.25 (major third) from a 17px base. */
+  --font-body: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-stamp: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --fs-xs: 0.8125rem;  /* 13 */
+  --fs-sm: 0.9375rem;  /* 15 */
+  --fs-md: 1.0625rem;  /* 17 */
+  --fs-lg: 1.3125rem;  /* 21 */
+  --fs-xl: 1.625rem;   /* 26 */
+  --fs-2xl: 2.0625rem; /* 33 */
+  --fs-3xl: clamp(2.125rem, 6vw, 3.25rem);
+  --lh-tight: 1.1;
+  --lh-snug: 1.3;
+  --lh-body: 1.55;
+
+  /* Space: 4px grid. */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
+
+  /* Radius: small for controls, larger for the record "document". */
+  --r-sm: 4px; --r-md: 8px; --r-lg: 14px; --r-pill: 999px;
+
+  /* Elevation: one level, for the record only. */
+  --shadow-1: 0 1px 2px rgb(16 24 40 / 6%), 0 8px 24px -12px rgb(16 24 40 / 18%);
+
+  /* Motion. */
+  --dur-fast: 120ms;
+  --dur: 220ms;
+  --dur-slow: 420ms;
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --ease-spring: cubic-bezier(.3, 1.4, .5, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: var(--harbour-950);
+    --surface: var(--harbour-900);
+    --surface-sunk: var(--harbour-800);
+    --text: #e8edf3;
+    --text-muted: #9fb0c6;
+    --border: var(--harbour-700);
+    --border-strong: #46608a;
+    --brand-ink: var(--flag-blue-200);
+    --brand-ink-hover: var(--white);
+    --link: #a9c1f2;
+    --focus-edge: var(--q-yellow-400);
+    --flag-edge: transparent;
+
+    --listed: var(--red-300);      --listed-wash: var(--red-950);
+    --review: var(--amber-300);    --review-wash: var(--amber-950);
+    --nomatch: var(--spruce-300);  --nomatch-wash: var(--spruce-950);
+    --unchecked: var(--slate-300); --unchecked-wash: var(--slate-950);
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 30%), 0 12px 32px -16px rgb(0 0 0 / 60%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur: 0ms; --dur-slow: 0ms; }
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: var(--fs-md)/var(--lh-body) var(--font-body);
+}
+h1, h2, h3 { margin: 0; line-height: var(--lh-snug); }
+a {
+  color: var(--link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-thickness var(--dur-fast), color var(--dur-fast);
+}
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--focus-edge);
+  border-radius: var(--r-sm);
+}
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ---------- 3. Components ---------- */
+
+/* Q flag mark. Used in the logo and the hero. */
+.qflag { display: inline-block; color: var(--brand-ink); }
+.qflag .cloth { fill: var(--brand); stroke: var(--flag-edge); stroke-width: 1.5; }
+.qflag .pole { stroke: currentColor; }
+
+/* Button */
+.btn {
+  --btn-bg: transparent; --btn-fg: var(--brand-ink); --btn-border: var(--brand-ink);
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  font: inherit; font-size: var(--fs-md); font-weight: 700; line-height: 1;
+  min-height: 48px; padding: 0 var(--s-5);
+  color: var(--btn-fg); background: var(--btn-bg);
+  border: 2px solid var(--btn-border); border-radius: var(--r-md);
+  cursor: pointer; user-select: none;
+  transition: background-color var(--dur-fast), border-color var(--dur-fast),
+              color var(--dur-fast), transform var(--dur-fast) var(--ease-out);
+}
+.btn:hover { --btn-fg: var(--brand-ink-hover); --btn-border: var(--brand-ink-hover); }
+.btn:active { transform: translateY(1px) scale(.99); }
+.btn[disabled] { cursor: progress; opacity: .8; }
+.btn--primary {
+  --btn-bg: var(--brand); --btn-fg: var(--on-brand); --btn-border: var(--brand);
+}
+.btn--primary:hover { --btn-bg: var(--brand-hover); --btn-border: var(--brand-hover); --btn-fg: var(--on-brand); }
+.btn--primary:active { --btn-bg: var(--brand-press); --btn-border: var(--brand-press); }
+/* A yellow ring disappears on a yellow button: ring it in the text colour instead. */
+.btn--primary:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: none; }
+.btn--lg { min-height: 56px; font-size: var(--fs-lg); padding: 0 var(--s-6); }
+.btn--text {
+  min-height: 0; padding: var(--s-1) 0; border: 0; font-weight: 700; font-size: var(--fs-sm);
+  color: var(--link); text-decoration: underline; text-underline-offset: 3px;
+}
+.btn--text:hover { --btn-fg: var(--link); text-decoration-thickness: 2px; }
+
+.spinner {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2.5px solid currentColor; border-right-color: transparent;
+  animation: spin .7s linear infinite;
+}
+
+/* Field: label + input + message */
+.field { display: grid; gap: var(--s-2); }
+.field__label { font-weight: 700; font-size: var(--fs-sm); }
+.field__row { display: flex; gap: var(--s-3); flex-wrap: wrap; }
+.input {
+  flex: 1 1 320px; min-width: 0; min-height: 56px;
+  font: inherit; font-size: var(--fs-lg);
+  padding: 0 var(--s-4);
+  color: var(--text); background: var(--surface);
+  border: 2px solid var(--border-strong); border-radius: var(--r-md);
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.input::placeholder { color: var(--text-muted); opacity: .8; }
+.input:hover { border-color: var(--brand-ink); }
+.input:focus-visible {
+  outline: none; border-color: var(--brand-ink);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 55%, transparent);
+  border-radius: var(--r-md);
+}
+.input[aria-invalid="true"] { border-color: var(--danger); }
+.input[aria-invalid="true"]:focus-visible { box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 25%, transparent); }
+.field__msg {
+  display: flex; gap: var(--s-2); align-items: flex-start;
+  min-height: 1.5em; margin: 0;
+  font-size: var(--fs-sm); color: var(--text-muted);
+}
+.field__msg svg { flex: none; margin-top: 3px; }
+.field__msg.is-error { color: var(--danger); font-weight: 600; }
+.field__msg.is-error { animation: msg-in var(--dur) var(--ease-out); }
+.shake { animation: shake 360ms var(--ease-out); }
+
+/* Chip (example names) */
+.chip {
+  font: inherit; font-size: var(--fs-sm); line-height: 1.2;
+  padding: 6px 14px; min-height: 34px;
+  color: var(--brand-ink); background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: background-color var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast) var(--ease-out);
+}
+.chip:hover { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 18%, var(--surface)); }
+.chip:active { transform: scale(.97); }
+
+/* Stamp: the verdict mark. The one loud element. */
+.stamp {
+  --c: var(--tone, var(--unchecked));
+  display: inline-block; position: relative;
+  font-family: var(--font-stamp); font-weight: 700;
+  font-size: var(--fs-2xl); line-height: 1; letter-spacing: .06em;
+  text-transform: uppercase; white-space: nowrap;
+  color: var(--c);
+  padding: 9px 15px 6px;
+  border: 3px solid var(--c); border-radius: var(--r-md);
+  transform: rotate(-4deg);
+}
+.stamp::after {
+  content: ""; position: absolute; inset: 3px;
+  border: 1px solid var(--c); border-radius: var(--r-sm); opacity: .7;
+}
+.stamp--sm { font-size: var(--fs-sm); padding: 3px 8px 2px; border-width: 2px; transform: none; }
+.stamp--sm::after { display: none; }
+/* Verdict tone: set once on a container; stamps, badges and markers inside inherit it. */
+.is-listed    { --tone: var(--listed);    --wash: var(--listed-wash); }
+.is-review    { --tone: var(--review);    --wash: var(--review-wash); }
+.is-nomatch   { --tone: var(--nomatch);   --wash: var(--nomatch-wash); }
+.is-unchecked { --tone: var(--unchecked); --wash: var(--unchecked-wash); }
+
+/* Record: the result document */
+.record {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+  animation: rise var(--dur-slow) var(--ease-out) both;
+}
+.record:focus { outline: none; }
+.record__head {
+  display: grid; grid-template-columns: 1fr auto; gap: var(--s-4) var(--s-5); align-items: start;
+  padding: var(--s-5) var(--s-6);
+  background: var(--wash);
+}
+.record__head .stamp { margin-top: var(--s-1); animation: press var(--dur-slow) var(--ease-spring) both 160ms; }
+.record__eyebrow { margin: 0 0 var(--s-1); font-size: var(--fs-sm); color: var(--text-muted); }
+.record__eyebrow strong { color: var(--text); }
+.record__title { font-size: var(--fs-xl); letter-spacing: -0.01em; margin-bottom: var(--s-2); }
+.record__answer { margin: 0; max-width: 58ch; }
+.record__section { padding: var(--s-5) var(--s-6); border-top: 1px solid var(--border); }
+.record__section h3 { font-size: var(--fs-md); margin-bottom: var(--s-3); }
+
+.steps { margin: 0; padding-left: 1.5em; }
+.steps li { margin-bottom: var(--s-2); padding-left: var(--s-1); max-width: 64ch; }
+.steps li::marker { font-weight: 700; color: var(--tone); }
+
+.checklist { list-style: none; margin: 0; padding: 0; }
+.checklist li {
+  display: grid; grid-template-columns: 22px 1fr auto; gap: var(--s-1) var(--s-3); align-items: center;
+  padding: var(--s-2) 0; border-bottom: 1px dashed var(--border); font-size: var(--fs-sm);
+}
+.checklist li:last-child { border-bottom: 0; }
+.checklist .when { color: var(--text-muted); text-align: right; }
+.tick {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 2px solid var(--border-strong); color: transparent;
+  transition: background-color var(--dur), border-color var(--dur), color var(--dur);
+}
+.tick svg { width: 12px; height: 12px; stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset var(--dur) var(--ease-out) var(--dur-fast); }
+.tick.is-pending { border-color: var(--brand); border-right-color: transparent; animation: spin .8s linear infinite; }
+.tick.is-done { background: var(--brand-ink); border-color: var(--brand-ink); color: var(--surface); }
+.tick.is-done svg { stroke-dashoffset: 0; }
+.fine { margin: var(--s-3) 0 0; font-size: var(--fs-sm); color: var(--text-muted); max-width: 70ch; }
+
+.actions { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+
+/* Listing (one sanctioned party) */
+.listing { padding: var(--s-4) 0; border-bottom: 1px solid var(--border); }
+.listing:last-of-type { border-bottom: 0; }
+.listing.is-revealed { animation: rise var(--dur) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 30ms); }
+.listing__top { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: var(--s-1) var(--s-4); }
+.listing__name { font-weight: 700; font-size: var(--fs-lg); }
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--fs-xs); font-weight: 700;
+  color: var(--tone); background: var(--wash);
+  padding: 3px 10px; border-radius: var(--r-pill);
+}
+.badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.listing__why { margin: var(--s-1) 0 var(--s-3); font-size: var(--fs-sm); }
+.listing__how { color: var(--text-muted); }
+.listing dl { display: grid; grid-template-columns: minmax(7.5em, 12em) 1fr; gap: 3px var(--s-4); margin: 0; font-size: var(--fs-sm); }
+.listing dt { color: var(--text-muted); }
+.listing dd { margin: 0; overflow-wrap: anywhere; }
+.listing__sources { margin: var(--s-3) 0 0; font-size: var(--fs-sm); color: var(--text-muted); }
+
+/* Alert (errors outside a record) */
+.alert {
+  display: grid; grid-template-columns: auto 1fr; gap: var(--s-3);
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 6px solid var(--danger); border-radius: var(--r-md);
+  padding: var(--s-4) var(--s-5);
+  animation: rise var(--dur) var(--ease-out) both;
+}
+.alert svg { color: var(--danger); margin-top: 3px; }
+.alert h2 { font-size: var(--fs-lg); margin-bottom: var(--s-1); }
+.alert p { margin: 0 0 var(--s-3); }
+
+/* ---------- Keyframes ---------- */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes msg-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@keyframes press {
+  0%   { opacity: 0; transform: rotate(-4deg) scale(1.7); }
+  60%  { opacity: 1; transform: rotate(-4deg) scale(.95); }
+  100% { opacity: 1; transform: rotate(-4deg) scale(1); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); } 40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); } 80% { transform: translateX(2px); }
+}
+@keyframes hoist {
+  from { transform: translateY(var(--hoist-from, 120px)); }
+  to   { transform: translateY(0); }
+}
+@keyframes flutter {
+  0%, 100% { transform: skewY(0deg) scaleX(1); }
+  50% { transform: skewY(-2.5deg) scaleX(.97); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; }
+  .spinner, .tick.is-pending { animation: none; }
+}
